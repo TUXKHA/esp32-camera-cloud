@@ -39,16 +39,24 @@ app.post("/upload", upload.single("image"), (req, res) => {
 
 // ================= GET IMAGE =================
 app.get("/latest.jpg", (req, res) => {
-  const filePath = path.join(__dirname, "latest.jpg");
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send("NO IMAGE");
-  }
+  const latestPath = path.join(__dirname, "latest.jpg");
+  const defaultPath = path.join(__dirname, "default.jpg");
 
   // ⚡ disable caching so browser always shows latest image
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, private");
 
-  res.sendFile(filePath);
+  // 1. serve latest uploaded frame
+  if (fs.existsSync(latestPath)) {
+    return res.sendFile(latestPath);
+  }
+
+  // 2. fallback to default offline image
+  if (fs.existsSync(defaultPath)) {
+    return res.sendFile(defaultPath);
+  }
+
+  // 3. emergency fallback (should never happen if default.jpg exists)
+  return res.status(200).send("NO IMAGE");
 });
 
 // ================= HEALTH CHECK =================
